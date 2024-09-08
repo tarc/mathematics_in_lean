@@ -36,22 +36,98 @@ variable (x y z : α)
 #check (sup_le : x ≤ z → y ≤ z → x ⊔ y ≤ z)
 
 example : x ⊓ y = y ⊓ x := by
-  sorry
+  apply le_antisymm
+  repeat
+    apply le_inf
+    apply inf_le_right
+    apply inf_le_left
 
 example : x ⊓ y ⊓ z = x ⊓ (y ⊓ z) := by
-  sorry
+  apply le_antisymm
+  . show x ⊓ y ⊓ z ≤ x ⊓ (y ⊓ z)
+    apply le_inf
+    . show x ⊓ y ⊓ z ≤ x
+      trans x ⊓ y
+      . apply inf_le_left
+      . apply inf_le_left
+    . show x ⊓ y ⊓ z ≤ y ⊓ z
+      apply le_inf
+      . show x ⊓ y ⊓ z ≤ y
+        trans x ⊓ y
+        . apply inf_le_left
+        . apply inf_le_right
+      apply inf_le_right
+  . show x ⊓ (y ⊓ z) ≤ x ⊓ y ⊓ z
+    apply le_inf
+    . show x ⊓ (y ⊓ z) ≤ x ⊓ y
+      apply le_inf
+      . show x ⊓ (y ⊓ z) ≤ x
+        apply inf_le_left
+      . show x ⊓ (y ⊓ z) ≤ y
+        trans y ⊓ z
+        . apply inf_le_right
+        . apply inf_le_left
+    . show x ⊓ (y ⊓ z) ≤ z
+      trans y ⊓ z
+      . apply inf_le_right
+      . apply inf_le_right
 
 example : x ⊔ y = y ⊔ x := by
-  sorry
+  apply le_antisymm
+  repeat
+    apply sup_le
+    apply le_sup_right
+    apply le_sup_left
 
 example : x ⊔ y ⊔ z = x ⊔ (y ⊔ z) := by
-  sorry
+  apply le_antisymm
+  . show x ⊔ y ⊔ z ≤ x ⊔ (y ⊔ z)
+    apply sup_le
+    . show x ⊔ y ≤ x ⊔ (y ⊔ z)
+      apply sup_le
+      . apply le_sup_left
+      trans y ⊔ z
+      . apply le_sup_left
+      apply le_sup_right
+    . show z ≤ x ⊔ (y ⊔ z)
+      trans y ⊔ z
+      . apply le_sup_right
+      apply le_sup_right
+  . show x ⊔ (y ⊔ z) ≤ x ⊔ y ⊔ z
+    apply sup_le
+    . show x ≤ x ⊔ y ⊔ z
+      trans x ⊔ y
+      . apply le_sup_left
+      apply le_sup_left
+    . show y ⊔ z ≤ x ⊔ y ⊔ z
+      apply sup_le
+      . trans x ⊔ y
+        apply le_sup_right
+        apply le_sup_left
+      apply le_sup_right
+
+#check inf_comm
+#check inf_assoc
+#check sup_comm
+#check sup_assoc
 
 theorem absorb1 : x ⊓ (x ⊔ y) = x := by
-  sorry
+  apply le_antisymm
+  . show x ⊓ (x ⊔ y) ≤ x
+    apply inf_le_left
+  . show x ≤ x ⊓ (x ⊔ y)
+    apply le_inf
+    . apply le_refl
+    apply le_sup_left
 
 theorem absorb2 : x ⊔ x ⊓ y = x := by
-  sorry
+  apply le_antisymm
+  . show x ⊔ x ⊓ y ≤ x
+    apply sup_le
+    . apply le_refl
+    apply inf_le_left
+  . show x ≤ x ⊔ x ⊓ y
+    apply le_sup_left
 
 end
 
@@ -70,10 +146,16 @@ variable {α : Type*} [Lattice α]
 variable (a b c : α)
 
 example (h : ∀ x y z : α, x ⊓ (y ⊔ z) = x ⊓ y ⊔ x ⊓ z) : a ⊔ b ⊓ c = (a ⊔ b) ⊓ (a ⊔ c) := by
-  sorry
+  rw [h, inf_comm (a ⊔ b), absorb1, inf_comm (a ⊔ b)]
+  show a ⊔ b ⊓ c = a ⊔ c ⊓ (a ⊔ b)
+  rw [h, ← sup_assoc, inf_comm c, inf_comm c]
+  show a ⊔ b ⊓ c = a ⊔ a ⊓ c ⊔ b ⊓ c
+  rw [absorb2]
 
 example (h : ∀ x y z : α, x ⊔ y ⊓ z = (x ⊔ y) ⊓ (x ⊔ z)) : a ⊓ (b ⊔ c) = a ⊓ b ⊔ a ⊓ c := by
-  sorry
+  rw [h, ← sup_comm a, absorb2, sup_comm (a ⊓ b)]
+  show a ⊓ (b ⊔ c) = a ⊓ (c ⊔ a ⊓ b)
+  rw [h, sup_comm c, sup_comm c, ← inf_assoc, absorb1]
 
 end
 
@@ -87,13 +169,30 @@ variable (a b c : R)
 #check (mul_nonneg : 0 ≤ a → 0 ≤ b → 0 ≤ a * b)
 
 example (h : a ≤ b) : 0 ≤ b - a := by
-  sorry
+  rw [← sub_self b, sub_eq_add_neg, sub_eq_add_neg]
+  show b + -b ≤ b + -a
+  apply add_le_add_left
+  apply neg_le_neg
+  exact h
 
 example (h: 0 ≤ b - a) : a ≤ b := by
-  sorry
+  rw [← add_zero a, ← neg_add_cancel_left a b, ← add_assoc, ← add_comm a, add_assoc, ← add_comm b]
+  show a + 0 ≤ a + (b + -a)
+  apply add_le_add_left
+  rw [← sub_eq_add_neg]
+  exact h
+
+#check le_sub_iff_add_le
 
 example (h : a ≤ b) (h' : 0 ≤ c) : a * c ≤ b * c := by
-  sorry
+  rw [← zero_add (a * c)]
+  apply le_sub_iff_add_le.mp
+  rw [← sub_mul]
+  apply mul_nonneg
+  . show 0 ≤ b - a
+    apply sub_nonneg_of_le
+    exact h
+  exact h'
 
 end
 
@@ -106,7 +205,26 @@ variable (x y z : X)
 #check (dist_triangle x y z : dist x z ≤ dist x y + dist y z)
 
 example (x y : X) : 0 ≤ dist x y := by
-  sorry
+  trans 2 * dist x y / 2
+  apply mul_nonneg
+  . rw [two_mul]
+    rw [← dist_self x]
+    nth_rw 3 [dist_comm]
+    apply dist_triangle
+  . norm_num
+  norm_num
+
+variable {Y : Type*} [Semiring Y] [LinearOrder Y] [MulPosStrictMono Y]
+variable (a b : Y)
+
+#check (nonneg_of_mul_nonneg_left : (0 ≤ a * b) → (0 < b) → 0 ≤ a)
+
+example (x y : X) : 0 ≤ dist x y := by
+  apply nonneg_of_mul_nonneg_right
+  . rw [two_mul, ← dist_self x]
+    nth_rw 3 [dist_comm]
+    show dist x x ≤ dist x y + dist y x
+    apply dist_triangle
+  norm_num
 
 end
-

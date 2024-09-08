@@ -34,66 +34,146 @@ example : s ⊆ f ⁻¹' (f '' s) := by
   use x, xs
 
 example : f '' s ⊆ v ↔ s ⊆ f ⁻¹' v := by
-  sorry
+  constructor
+  . simp only [subset_def]
+    intro xfsxv
+    intro x xs
+    simp
+    apply xfsxv
+    use x
+  . simp only [subset_def]
+    intro xsxfv
+    rintro y ⟨x, xs, rfl⟩
+    apply (xsxfv x xs)
 
 example (h : Injective f) : f ⁻¹' (f '' s) ⊆ s := by
-  sorry
+  rintro x
+  rintro ⟨x', x's, xeq⟩
+  apply h at xeq
+  rw [←xeq]
+  exact x's
 
 example : f '' (f ⁻¹' u) ⊆ u := by
-  sorry
+  rintro y ⟨x, xs, rfl⟩
+  apply xs
 
 example (h : Surjective f) : u ⊆ f '' (f ⁻¹' u) := by
-  sorry
+  rintro y ys
+  simp
+  rcases h y with ⟨x, rfl⟩
+  use x
 
 example (h : s ⊆ t) : f '' s ⊆ f '' t := by
-  sorry
+  intro y yft
+  rcases yft with ⟨x, xs, rfl⟩
+  use x, h xs
 
 example (h : u ⊆ v) : f ⁻¹' u ⊆ f ⁻¹' v := by
-  sorry
+  intro x
+  simp
+  apply h
 
 example : f ⁻¹' (u ∪ v) = f ⁻¹' u ∪ f ⁻¹' v := by
-  sorry
+  ext x
+  simp
 
 example : f '' (s ∩ t) ⊆ f '' s ∩ f '' t := by
-  sorry
+  rintro y ⟨x, ⟨xs, xt⟩, rfl⟩
+  constructor
+  . use x, xs
+  . use x, xt
 
 example (h : Injective f) : f '' s ∩ f '' t ⊆ f '' (s ∩ t) := by
-  sorry
+  rintro y ⟨⟨x, ⟨xs, fxeq⟩⟩, ⟨x', ⟨xt, rfl⟩⟩⟩
+  apply h at fxeq
+  use x'
+  rw [fxeq] at xs
+  use ⟨xs, xt⟩
 
 example : f '' s \ f '' t ⊆ f '' (s \ t) := by
-  sorry
+  rintro y ⟨⟨x, xs, rfl⟩, ft⟩
+  use x
+  constructor
+  use xs
+  contrapose! ft
+  use x
+  rfl
 
 example : f ⁻¹' u \ f ⁻¹' v ⊆ f ⁻¹' (u \ v) := by
-  sorry
+  intro x
+  simp
 
 example : f '' s ∩ v = f '' (s ∩ f ⁻¹' v) := by
-  sorry
+  ext y
+  constructor
+  . rintro ⟨⟨x, xs, rfl⟩, fxv⟩
+    use x, ⟨xs, fxv⟩
+  . rintro ⟨x, ⟨xs, xfv⟩, rfl⟩
+    constructor
+    . use x, xs
+    . exact xfv
 
 example : f '' (s ∩ f ⁻¹' u) ⊆ f '' s ∩ u := by
-  sorry
+  rintro y ⟨x, ⟨xs, fxu⟩, rfl⟩
+  simp at fxu
+  use ⟨x, xs, rfl⟩
 
 example : s ∩ f ⁻¹' u ⊆ f ⁻¹' (f '' s ∩ u) := by
-  sorry
+  rintro x ⟨xs, fxu⟩
+  simp at fxu
+  constructor
+  . use x, xs
+  exact fxu
 
 example : s ∪ f ⁻¹' u ⊆ f ⁻¹' (f '' s ∪ u) := by
-  sorry
+  rintro x (xs | fxu)
+  . left
+    use x, xs
+  . right
+    exact fxu
 
 variable {I : Type*} (A : I → Set α) (B : I → Set β)
 
 example : (f '' ⋃ i, A i) = ⋃ i, f '' A i := by
-  sorry
+  ext y
+  simp
+  constructor
+  . rintro ⟨x, ⟨i, xai⟩, rfl⟩
+    use i, x
+  . rintro ⟨i, x, xai, rfl⟩
+    use x
+    constructor
+    . use i, xai
+    . rfl
 
 example : (f '' ⋂ i, A i) ⊆ ⋂ i, f '' A i := by
-  sorry
+  intro y
+  rintro ⟨x, h, rfl⟩
+  simp at *
+  intro i
+  use x, (h i)
 
 example (i : I) (injf : Injective f) : (⋂ i, f '' A i) ⊆ f '' ⋂ i, A i := by
-  sorry
+  intro y
+  simp
+  intro h
+  rcases (h i) with ⟨x, _, rfl⟩
+  use x
+  constructor
+  . intro i'
+    rcases (h i') with ⟨x', xai', fxeq⟩
+    apply injf at fxeq
+    rw [fxeq] at xai'
+    exact xai'
+  . rfl
 
 example : (f ⁻¹' ⋃ i, B i) = ⋃ i, f ⁻¹' B i := by
-  sorry
+  ext x
+  simp
 
 example : (f ⁻¹' ⋂ i, B i) = ⋂ i, f ⁻¹' B i := by
-  sorry
+  ext y
+  simp
 
 example : InjOn f s ↔ ∀ x₁ ∈ s, ∀ x₂ ∈ s, f x₁ = f x₂ → x₁ = x₂ :=
   Iff.refl _
@@ -123,16 +203,45 @@ example : range exp = { y | y > 0 } := by
   rw [exp_log ypos]
 
 example : InjOn sqrt { x | x ≥ 0 } := by
-  sorry
+  intro x xpos
+  intro x' x'pos
+  simp at *
+  intro h
+  have := rpow_div_two_eq_sqrt 2 xpos
+  simp at this
+  rw [this]
+  have := rpow_div_two_eq_sqrt 2 x'pos
+  simp at this
+  rw [this]
+  simp [h]
 
 example : InjOn (fun x ↦ x ^ 2) { x : ℝ | x ≥ 0 } := by
-  sorry
+  intro x xpos x' x'pos
+  simp at *
+  intro poweq
+  have := sqrt_sq xpos
+  rw [← sqrt_sq xpos, ← sqrt_sq x'pos]
+  rw [poweq]
 
 example : sqrt '' { x | x ≥ 0 } = { y | y ≥ 0 } := by
-  sorry
+  ext y
+  simp
+  constructor
+  . rintro ⟨x, h, rfl⟩
+    simp [*]
+  . rintro ypos
+    use y^2, pow_two_nonneg y
+    rw [sqrt_sq ypos]
 
 example : (range fun x ↦ x ^ 2) = { y : ℝ | y ≥ 0 } := by
-  sorry
+  ext y'
+  simp
+  constructor
+  . rintro ⟨y, rfl⟩
+    apply pow_two_nonneg y
+  . intro y'nn
+    use √y'
+    apply sq_sqrt y'nn
 
 end
 
@@ -144,6 +253,8 @@ variable {α β : Type*} [Inhabited α]
 variable (P : α → Prop) (h : ∃ x, P x)
 
 #check Classical.choose h
+
+#check dif_pos
 
 example : P (Classical.choose h) :=
   Classical.choose_spec h
@@ -163,11 +274,23 @@ variable (f : α → β)
 
 open Function
 
-example : Injective f ↔ LeftInverse (inverse f) f :=
-  sorry
+example : Injective f ↔ LeftInverse (inverse f) f := by
+  constructor
+  . intro injf x
+    rw [inverse, dif_pos ⟨x, refl (f x)⟩]
+    apply injf
+    exact @choose_spec α (fun x => f x = f _) ⟨x, refl (f x)⟩
+  . intro linv x x' feq
+    rw [← linv x, ← linv x', feq]
 
-example : Surjective f ↔ RightInverse (inverse f) f :=
-  sorry
+example : Surjective f ↔ RightInverse (inverse f) f := by
+  constructor
+  . intro surjf y
+    rcases surjf y with ⟨x, rfl⟩
+    rw [inverse, dif_pos ⟨x, refl (f x)⟩]
+    exact @choose_spec _ (fun x => f x = f _) ⟨x, refl (f x)⟩
+  . rintro rinv y
+    exact ⟨inverse f y, rinv y⟩
 
 end
 
@@ -183,10 +306,10 @@ theorem Cantor : ∀ f : α → Set α, ¬Surjective f := by
     intro h'
     have : j ∉ f j := by rwa [h] at h'
     contradiction
-  have h₂ : j ∈ S
-  sorry
-  have h₃ : j ∉ S
-  sorry
+  have h₂ : j ∈ S := h₁
+  have h₃ : j ∉ S := by
+    rw [← h]
+    exact h₁
   contradiction
 
 -- COMMENTS: TODO: improve this

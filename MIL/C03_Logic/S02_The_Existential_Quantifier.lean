@@ -52,10 +52,21 @@ example (ubf : FnHasUb f) (ubg : FnHasUb g) : FnHasUb fun x ↦ f x + g x := by
   apply fnUb_add ubfa ubgb
 
 example (lbf : FnHasLb f) (lbg : FnHasLb g) : FnHasLb fun x ↦ f x + g x := by
-  sorry
+  rcases lbf with ⟨a, lbfa⟩
+  rcases lbg with ⟨b, lbgb⟩
+  use a + b
+  intro x
+  apply add_le_add
+  . apply lbfa
+  apply lbgb
 
 example {c : ℝ} (ubf : FnHasUb f) (h : c ≥ 0) : FnHasUb fun x ↦ c * f x := by
-  sorry
+  rcases ubf with ⟨a, ubfa⟩
+  use c * a
+  intro x
+  apply mul_le_mul_of_nonneg_left
+  apply ubfa
+  apply h
 
 example : FnHasUb f → FnHasUb g → FnHasUb fun x ↦ f x + g x := by
   rintro ⟨a, ubfa⟩ ⟨b, ubgb⟩
@@ -128,8 +139,17 @@ example (divab : a ∣ b) (divbc : b ∣ c) : a ∣ c := by
   rw [ceq, beq]
   use d * e; ring
 
+example (divab : a ∣ b) (divbc : b ∣ c) : a ∣ c := by
+  rcases divab with ⟨d, rfl⟩
+  rcases divbc with ⟨e, rfl⟩
+  use d * e;
+  rw [← mul_assoc]
+
 example (divab : a ∣ b) (divac : a ∣ c) : a ∣ b + c := by
-  sorry
+  rcases divab with ⟨b, rfl⟩
+  rcases divac with ⟨c, rfl⟩
+  use b + c
+  ring
 
 end
 
@@ -143,7 +163,10 @@ example {c : ℝ} : Surjective fun x ↦ x + c := by
   dsimp; ring
 
 example {c : ℝ} (h : c ≠ 0) : Surjective fun x ↦ c * x := by
-  sorry
+  intro x
+  use x / c
+  dsimp; apply mul_div_cancel₀
+  apply h
 
 example (x y : ℝ) (h : x - y ≠ 0) : (x ^ 2 - y ^ 2) / (x - y) = x + y := by
   field_simp [h]
@@ -163,6 +186,10 @@ variable {α : Type*} {β : Type*} {γ : Type*}
 variable {g : β → γ} {f : α → β}
 
 example (surjg : Surjective g) (surjf : Surjective f) : Surjective fun x ↦ g (f x) := by
-  sorry
+  intro x
+  rcases surjg x with ⟨y, hg⟩
+  rcases surjf y with ⟨z, hf⟩
+  use z
+  dsimp; rw [hf, hg]
 
 end
